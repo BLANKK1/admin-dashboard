@@ -103,8 +103,13 @@
         <div class="section-title-block">
           <h2 class="section-title">Records</h2>
           <p class="section-desc">
-            <span *ngIf="user.role === 'admin'">All records including confidential — Admin access</span>
-            <span *ngIf="user.role !== 'admin'">Public records only — General User access</span>
+            <span *ngIf="user.role === 'admin'">Showing all {{ records.length }} records — admin access</span>
+            <span *ngIf="user.role !== 'admin'">
+              Showing {{ records.length }} of {{ recordsMeta?.totalInStore ?? records.length }} records
+              <span *ngIf="recordsMeta && recordsMeta.totalInStore > records.length">
+                — {{ recordsMeta.totalInStore - records.length }} restricted (admin only)
+              </span>
+            </span>
           </p>
         </div>
         <div class="load-controls">

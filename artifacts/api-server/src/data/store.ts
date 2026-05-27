@@ -33,7 +33,7 @@ export interface Session {
 
 export interface AuditEntry {
   id: string;
-  action: "login" | "logout" | "user_create" | "user_update" | "user_delete";
+  action: "login" | "logout" | "user_create" | "user_update" | "user_delete" | "record_access_update";
   actorId: string;
   actorName: string;
   targetId?: string;
@@ -127,7 +127,7 @@ const records: Record[] = [
   },
   {
     id: "REC-002",
-    title: "Employee Headcount Analysis (Confidential)",
+    title: "Employee Headcount Analysis",
     description:
       "Detailed breakdown of headcount by department, salary bands, and projected hiring plans for FY2024.",
     category: "HR",
@@ -205,7 +205,7 @@ const records: Record[] = [
   },
   {
     id: "REC-008",
-    title: "Salary Benchmarking Report (Confidential)",
+    title: "Salary Benchmarking Report",
     description:
       "Industry salary comparison data by role and seniority level. For HR and executive review only.",
     category: "HR",
@@ -231,7 +231,7 @@ const records: Record[] = [
   },
   {
     id: "REC-010",
-    title: "Infrastructure Cost Analysis (Confidential)",
+    title: "Infrastructure Cost Analysis",
     description:
       "Detailed cloud infrastructure spend analysis with optimization recommendations and projected savings.",
     category: "Finance",
@@ -377,9 +377,27 @@ export function deleteUser(id: string): boolean {
   return true;
 }
 
+export function getAllRecords(): Record[] {
+  return [...records];
+}
+
 export function getRecords(role: string): Record[] {
-  if (role === "admin") return records;
+  if (role === "admin") return [...records];
   return records.filter((r) => r.accessLevel === "all");
+}
+
+export function updateRecordAccess(
+  id: string,
+  accessLevel: "all" | "admin",
+): Record | null {
+  const idx = records.findIndex((r) => r.id === id);
+  if (idx === -1) return null;
+  records[idx] = {
+    ...records[idx]!,
+    accessLevel,
+    updatedAt: new Date().toISOString().split("T")[0]!,
+  };
+  return records[idx]!;
 }
 
 export function addAuditEntry(

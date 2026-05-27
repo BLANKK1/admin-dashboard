@@ -3,8 +3,10 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AuditService } from '../../core/services/audit.service';
+import { RecordsService } from '../../core/services/records.service';
 import { User } from '../../core/models/user.model';
 import { AuditEntry } from '../../core/models/audit-entry.model';
+import { AppRecord } from '../../core/models/record.model';
 
 @Component({
   selector: 'app-admin',
@@ -20,9 +22,15 @@ export class AdminComponent implements OnInit {
   errorMessage = '';
   deleteConfirm: string | null = null;
 
-  activeTab: 'users' | 'audit' = 'users';
+  activeTab: 'users' | 'records' | 'audit' = 'users';
+
   auditEntries: AuditEntry[] = [];
   isLoadingAudit = false;
+
+  allRecords: AppRecord[] = [];
+  isLoadingRecords = false;
+  recordsError = '';
+  togglingRecordId: string | null = null;
 
   userForm!: FormGroup;
   currentUser!: User;
@@ -32,6 +40,7 @@ export class AdminComponent implements OnInit {
     private auth: AuthService,
     private fb: FormBuilder,
     private auditService: AuditService,
+    private recordsService: RecordsService,
   ) {}
 
   ngOnInit(): void {
@@ -40,10 +49,13 @@ export class AdminComponent implements OnInit {
     this.loadUsers();
   }
 
-  setTab(tab: 'users' | 'audit'): void {
+  setTab(tab: 'users' | 'records' | 'audit'): void {
     this.activeTab = tab;
-    if (tab === 'audit') {
+    if (tab === 'audit' && this.auditEntries.length === 0) {
       this.loadAuditLog();
+    }
+    if (tab === 'records' && this.allRecords.length === 0) {
+      this.loadAllRecords();
     }
   }
 
@@ -60,6 +72,58 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  refreshAudit(): void {
+    this.loadAuditLog();
+  }
+
+  loadAllRecords(): void {
+    this.isLoadingRecords = true;
+    this.recordsError = '';
+    this.recordsService.getAllRecordsAdmin().subscribe({
+      next: (recs) => {
+        this.allRecords = recs;
+        this.isLoadingRecords = false;
+      },
+      error: () => {
+        this.recordsError = 'Failed to load records.';
+        this.isLoadingRecords = false;
+      },
+    });
+  }
+
+  toggleAccess(record: AppRecord): void {
+    const newLevel: 'all' | 'admin' = record.accessLevel === 'all' ? 'admin' : 'all';
+    this.togglingRecordId = record.id;
+    this.recordsService.updateAccessLevel(record.id, newLevel).subscribe({
+      next: (updated) => {
+        const idx = this.allRecords.findIndex((r) => r.id === record.id);
+        if (idx !== -1) {
+          this.allRecords = [
+            ...this.allRecords.slice(0, idx),
+            updated,
+            ...this.allRecords.slice(idx + 1),
+          ];
+        }
+        this.togglingRecordId = null;
+        this.successMessage = `"${updated.title}" is now ${newLevel === 'all' ? 'Public' : 'Restricted'}.`;
+        setTimeout(() => (this.successMessage = ''), 3000);
+      },
+      error: () => {
+        this.togglingRecordId = null;
+        this.errorMessage = 'Failed to update access level.';
+        setTimeout(() => (this.errorMessage = ''), 3000);
+      },
+    });
+  }
+
+  get publicCount(): number {
+    return this.allRecords.filter((r) => r.accessLevel === 'all').length;
+  }
+
+  get restrictedCount(): number {
+    return this.allRecords.filter((r) => r.accessLevel === 'admin').length;
+  }
+
   getActionLabel(action: string): string {
     const labels: Record<string, string> = {
       login: 'Login',
@@ -67,6 +131,7 @@ export class AdminComponent implements OnInit {
       user_create: 'User Created',
       user_update: 'User Updated',
       user_delete: 'User Deleted',
+      record_access_update: 'Access Changed',
     };
     return labels[action] ?? action;
   }
@@ -77,6 +142,7 @@ export class AdminComponent implements OnInit {
     if (action === 'user_create') return 'badge--primary';
     if (action === 'user_update') return 'badge--teal';
     if (action === 'user_delete') return 'badge--danger';
+    if (action === 'record_access_update') return 'badge--accent';
     return 'badge--muted';
   }
 

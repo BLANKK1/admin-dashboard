@@ -1,7 +1,14 @@
 import { Router } from "express";
-import { getRecords } from "../data/store.js";
+import {
+  getAllRecords,
+  getRecords,
+  updateRecordAccess,
+  getUserByUserId,
+  addAuditEntry,
+} from "../data/store.js";
 import {
   requireAuth,
+  requireAdmin,
   type AuthRequest,
 } from "../middlewares/auth-middleware.js";
 
@@ -16,17 +23,60 @@ router.get("/records", requireAuth, async (req: AuthRequest, res) => {
     await new Promise((resolve) => setTimeout(resolve, clampedDelay));
   }
 
-  const records = getRecords(req.authUser!.role);
+  const filtered = getRecords(req.authUser!.role);
+  const total = getAllRecords().length;
 
   res.json({
-    records,
+    records: filtered,
     meta: {
-      total: records.length,
+      total: filtered.length,
+      totalInStore: total,
       delay: clampedDelay,
       role: req.authUser!.role,
       timestamp: new Date().toISOString(),
     },
   });
 });
+
+router.get("/records/all", requireAuth, requireAdmin, (_req, res) => {
+  res.json({ records: getAllRecords() });
+});
+
+router.patch(
+  "/records/:id/access",
+  requireAuth,
+  requireAdmin,
+  (req: AuthRequest, res) => {
+    const { id } = req.params as { id: string };
+    const { accessLevel } = req.body as { accessLevel?: string };
+
+    if (accessLevel !== "all" && accessLevel !== "admin") {
+      res.status(400).json({
+        error: "Bad Request",
+        message: 'accessLevel must be "all" or "admin"',
+      });
+      return;
+    }
+
+    const updated = updateRecordAccess(id, accessLevel);
+    if (!updated) {
+      res.status(404).json({ error: "Not Found", message: "Record not found" });
+      return;
+    }
+
+    const actorId = req.authUser?.userId ?? "unknown";
+    const actor = getUserByUserId(actorId);
+    addAuditEntry({
+      action: "record_access_update",
+      actorId,
+      actorName: actor?.name ?? actorId,
+      targetId: updated.id,
+      targetName: updated.title,
+      detail: `Set "${updated.title}" access to ${accessLevel === "all" ? "Public" : "Restricted"}`,
+    });
+
+    res.json({ record: updated, message: "Access level updated" });
+  },
+);
 
 export default router;

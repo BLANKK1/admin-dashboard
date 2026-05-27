@@ -15,6 +15,7 @@ export interface RecordsResponse {
   records: AppRecord[];
   meta: {
     total: number;
+    totalInStore: number;
     delay: number;
     role: string;
     timestamp: string;
