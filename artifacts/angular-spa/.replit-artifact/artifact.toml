@@ -1,0 +1,30 @@
+kind = "web"
+previewPath = "/"
+title = "NexusPortal — Angular SPA"
+version = "1.0.0"
+id = "artifacts/angular-spa"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = ["/"]
+localPort = 19504
+
+[services.development]
+run = "pnpm --filter @workspace/angular-spa run dev"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/angular-spa", "run", "build"]
+publicDir = "artifacts/angular-spa/dist/angular-spa"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19504"

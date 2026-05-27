@@ -1,0 +1,197 @@
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar animate-fade-left">
+    <div class="sidebar-top">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+            <path d="M10 18L18 10L26 18L18 26L10 18Z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+            <circle cx="18" cy="18" r="3" fill="white"/>
+          </svg>
+        </div>
+        <span class="brand-label">NexusPortal</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a routerLink="/dashboard" routerLinkActive="nav-item--active" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+          Dashboard
+        </a>
+        <a *ngIf="user.role === 'admin'" routerLink="/admin" routerLinkActive="nav-item--active" class="nav-item nav-item--admin">
+          <svg class="nav-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          User Management
+          <span class="nav-badge">Admin</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar">{{ userInitials }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ user.name }}</span>
+          <span class="user-role" [class.admin]="user.role === 'admin'">{{ user.role }}</span>
+        </div>
+      </div>
+      <button class="btn btn--ghost btn--sm logout-btn" (click)="logout()">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-title">
+        <h1>Dashboard</h1>
+        <p class="header-sub">Welcome back, <strong>{{ user.name.split(' ')[0] }}</strong></p>
+      </div>
+      <div class="header-role-tag">
+        <span class="badge" [class]="user.role === 'admin' ? 'badge--accent' : 'badge--primary'">
+          {{ user.role === 'admin' ? 'Administrator' : 'General User' }}
+        </span>
+      </div>
+    </header>
+
+    <!-- Profile + Stats Row -->
+    <div class="top-row animate-fade">
+      <div class="card profile-card">
+        <div class="profile-avatar">{{ userInitials }}</div>
+        <div class="profile-body">
+          <div class="profile-name">{{ user.name }}</div>
+          <div class="profile-email">{{ user.email }}</div>
+          <div class="profile-tags">
+            <span class="badge badge--muted">{{ user.department }}</span>
+            <span class="badge" [class]="user.status === 'active' ? 'badge--success' : 'badge--muted'">
+              {{ user.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="card stat-card animate-fade">
+          <div class="stat-value">{{ records.length }}</div>
+          <div class="stat-label">Total Records</div>
+        </div>
+        <div class="card stat-card animate-fade">
+          <div class="stat-value">{{ publishedCount }}</div>
+          <div class="stat-label">Published</div>
+        </div>
+        <div class="card stat-card animate-fade" *ngIf="user.role === 'admin'">
+          <div class="stat-value accent">{{ adminRecordCount }}</div>
+          <div class="stat-label">Confidential</div>
+        </div>
+        <div class="card stat-card animate-fade" *ngIf="user.role !== 'admin'">
+          <div class="stat-value">{{ user.department }}</div>
+          <div class="stat-label">Department</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Records Section -->
+    <section class="card records-section animate-fade">
+      <div class="section-header">
+        <div class="section-title-block">
+          <h2 class="section-title">Records</h2>
+          <p class="section-desc">
+            <span *ngIf="user.role === 'admin'">All records including confidential — Admin access</span>
+            <span *ngIf="user.role !== 'admin'">Public records only — General User access</span>
+          </p>
+        </div>
+        <div class="load-controls">
+          <div class="delay-control">
+            <label class="delay-label">
+              API Delay
+              <strong class="delay-value">{{ delayMs }}ms</strong>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="5000"
+              step="500"
+              [(ngModel)]="delayMs"
+              class="delay-slider"
+            />
+          </div>
+          <button
+            class="btn btn--primary btn--sm"
+            (click)="loadRecords()"
+            [disabled]="isLoadingRecords"
+          >
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" *ngIf="!isLoadingRecords">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>{{ isLoadingRecords ? 'Loading…' : 'Reload' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Async status banner -->
+      <div *ngIf="isLoadingRecords" class="async-banner async-banner--loading">
+        <span class="pulse-dot"></span>
+        Fetching records asynchronously<span *ngIf="delayMs > 0"> — simulated {{ delayMs }}ms API delay</span>…
+      </div>
+      <div *ngIf="recordsLoaded && !isLoadingRecords && !loadError" class="async-banner async-banner--done">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Loaded {{ records.length }} records in <strong>{{ loadDuration }}ms</strong>
+        <span *ngIf="recordsMeta">&nbsp;(API delay: {{ recordsMeta.delay }}ms, role: {{ recordsMeta.role }})</span>
+      </div>
+      <div *ngIf="loadError" class="alert alert--error">{{ loadError }}</div>
+
+      <!-- Skeleton while loading -->
+      <div *ngIf="isLoadingRecords" class="skeleton-rows">
+        <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]">
+          <div class="skeleton" style="width:60px; height:12px;"></div>
+          <div class="skeleton" style="width:220px; height:12px;"></div>
+          <div class="skeleton" style="width:90px; height:12px;"></div>
+          <div class="skeleton" style="width:65px; height:12px;"></div>
+          <div class="skeleton" style="width:65px; height:12px;"></div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper" *ngIf="!isLoadingRecords">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Access</th>
+              <th>Author</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of records; let i = index" class="animate-fade">
+              <td class="cell--mono">{{ r.id }}</td>
+              <td class="cell--primary">{{ r.title }}</td>
+              <td>{{ r.category }}</td>
+              <td><span class="badge" [ngClass]="getStatusClass(r.status)">{{ r.status }}</span></td>
+              <td><span class="badge" [ngClass]="getPriorityClass(r.priority)">{{ r.priority }}</span></td>
+              <td>
+                <span class="badge" [ngClass]="r.accessLevel === 'admin' ? 'badge--accent' : 'badge--muted'">
+                  {{ r.accessLevel === 'admin' ? 'Admin Only' : 'Public' }}
+                </span>
+              </td>
+              <td>{{ r.author }}</td>
+            </tr>
+            <tr *ngIf="records.length === 0 && !isLoadingRecords">
+              <td colspan="7" class="empty-cell">No records found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>

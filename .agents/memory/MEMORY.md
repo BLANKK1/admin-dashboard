@@ -1,0 +1,1 @@
+- [Angular 16 config gotchas](angular16-config.md) — browserTarget vs buildTarget, analytics prompt, arrow-fn templates
