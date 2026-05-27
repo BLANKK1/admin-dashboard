@@ -3,6 +3,8 @@ import {
   findUserByCredentials,
   createSession,
   deleteSession,
+  getUserByUserId,
+  addAuditEntry,
 } from "../data/store.js";
 import {
   requireAuth,
@@ -53,6 +55,13 @@ router.post("/auth/login", (req, res) => {
   const token = createSession(user.userId, user.role);
   const { password: _p, ...safeUser } = user;
 
+  addAuditEntry({
+    action: "login",
+    actorId: user.userId,
+    actorName: user.name,
+    detail: `Signed in as ${user.role}`,
+  });
+
   res.json({ token, user: safeUser, message: "Login successful" });
 });
 
@@ -63,7 +72,18 @@ router.get("/auth/me", requireAuth, (req: AuthRequest, res) => {
 router.post("/auth/logout", requireAuth, (req: AuthRequest, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader?.split(" ")[1];
+  const actorId = req.authUser?.userId ?? "unknown";
+  const actor = getUserByUserId(actorId);
+
   if (token) deleteSession(token);
+
+  addAuditEntry({
+    action: "logout",
+    actorId,
+    actorName: actor?.name ?? actorId,
+    detail: "Signed out",
+  });
+
   res.json({ message: "Logged out successfully" });
 });
 

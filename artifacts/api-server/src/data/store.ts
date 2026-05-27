@@ -31,6 +31,17 @@ export interface Session {
   expiresAt: number;
 }
 
+export interface AuditEntry {
+  id: string;
+  action: "login" | "logout" | "user_create" | "user_update" | "user_delete";
+  actorId: string;
+  actorName: string;
+  targetId?: string;
+  targetName?: string;
+  detail: string;
+  timestamp: string;
+}
+
 const users: User[] = [
   {
     id: "1",
@@ -235,6 +246,71 @@ const records: Record[] = [
 
 const sessions = new Map<string, Session>();
 
+const now = Date.now();
+const auditLog: AuditEntry[] = [
+  {
+    id: randomUUID(),
+    action: "login",
+    actorId: "admin01",
+    actorName: "Alexandra Chen",
+    detail: "Signed in as admin",
+    timestamp: new Date(now - 2 * 60000).toISOString(),
+  },
+  {
+    id: randomUUID(),
+    action: "user_update",
+    actorId: "admin01",
+    actorName: "Alexandra Chen",
+    targetId: "4",
+    targetName: "Jane Smith",
+    detail: 'Updated user "Jane Smith" — department changed to Sales',
+    timestamp: new Date(now - 18 * 60000).toISOString(),
+  },
+  {
+    id: randomUUID(),
+    action: "user_create",
+    actorId: "superadmin",
+    actorName: "Marcus Reyes",
+    targetId: "5",
+    targetName: "Bob Wilson",
+    detail: 'Created user "Bob Wilson" (general, Finance)',
+    timestamp: new Date(now - 45 * 60000).toISOString(),
+  },
+  {
+    id: randomUUID(),
+    action: "login",
+    actorId: "john.doe",
+    actorName: "John Doe",
+    detail: "Signed in as general",
+    timestamp: new Date(now - 72 * 60000).toISOString(),
+  },
+  {
+    id: randomUUID(),
+    action: "logout",
+    actorId: "john.doe",
+    actorName: "John Doe",
+    detail: "Signed out",
+    timestamp: new Date(now - 68 * 60000).toISOString(),
+  },
+  {
+    id: randomUUID(),
+    action: "user_delete",
+    actorId: "superadmin",
+    actorName: "Marcus Reyes",
+    targetName: "Tom Bradley",
+    detail: 'Deleted user "Tom Bradley"',
+    timestamp: new Date(now - 3 * 3600000).toISOString(),
+  },
+  {
+    id: randomUUID(),
+    action: "login",
+    actorId: "superadmin",
+    actorName: "Marcus Reyes",
+    detail: "Signed in as admin",
+    timestamp: new Date(now - 4 * 3600000).toISOString(),
+  },
+];
+
 export function findUserByCredentials(
   userId: string,
   password: string,
@@ -304,4 +380,19 @@ export function deleteUser(id: string): boolean {
 export function getRecords(role: string): Record[] {
   if (role === "admin") return records;
   return records.filter((r) => r.accessLevel === "all");
+}
+
+export function addAuditEntry(
+  entry: Omit<AuditEntry, "id" | "timestamp">,
+): void {
+  auditLog.unshift({
+    ...entry,
+    id: randomUUID(),
+    timestamp: new Date().toISOString(),
+  });
+  if (auditLog.length > 200) auditLog.pop();
+}
+
+export function getAuditEntries(): AuditEntry[] {
+  return [...auditLog];
 }

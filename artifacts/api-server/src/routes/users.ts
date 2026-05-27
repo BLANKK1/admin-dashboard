@@ -1,5 +1,12 @@
 import { Router } from "express";
-import { getAllUsers, createUser, updateUser, deleteUser } from "../data/store.js";
+import {
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  getUserByUserId,
+  addAuditEntry,
+} from "../data/store.js";
 import {
   requireAuth,
   requireAdmin,
@@ -42,6 +49,17 @@ router.post("/users", (req: AuthRequest, res) => {
     createdAt: new Date().toISOString().split("T")[0]!,
   });
 
+  const actorId = req.authUser?.userId ?? "unknown";
+  const actor = getUserByUserId(actorId);
+  addAuditEntry({
+    action: "user_create",
+    actorId,
+    actorName: actor?.name ?? actorId,
+    targetId: user.id,
+    targetName: user.name,
+    detail: `Created user "${user.name}" (${role}, ${department})`,
+  });
+
   res.status(201).json({ user, message: "User created successfully" });
 });
 
@@ -63,6 +81,17 @@ router.put("/users/:id", (req: AuthRequest, res) => {
     return;
   }
 
+  const actorId = req.authUser?.userId ?? "unknown";
+  const actor = getUserByUserId(actorId);
+  addAuditEntry({
+    action: "user_update",
+    actorId,
+    actorName: actor?.name ?? actorId,
+    targetId: updated.id,
+    targetName: updated.name,
+    detail: `Updated user "${updated.name}"`,
+  });
+
   res.json({ user: updated, message: "User updated successfully" });
 });
 
@@ -76,12 +105,25 @@ router.delete("/users/:id", (req: AuthRequest, res) => {
     return;
   }
 
+  const allUsers = getAllUsers();
+  const target = allUsers.find((u) => u.id === id);
   const success = deleteUser(id);
 
   if (!success) {
     res.status(404).json({ error: "Not Found", message: "User not found" });
     return;
   }
+
+  const actorId = req.authUser?.userId ?? "unknown";
+  const actor = getUserByUserId(actorId);
+  addAuditEntry({
+    action: "user_delete",
+    actorId,
+    actorName: actor?.name ?? actorId,
+    targetId: id,
+    targetName: target?.name,
+    detail: `Deleted user "${target?.name ?? id}"`,
+  });
 
   res.json({ message: "User deleted successfully" });
 });

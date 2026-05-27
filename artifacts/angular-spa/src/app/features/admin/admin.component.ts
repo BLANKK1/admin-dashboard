@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
+import { AuditService } from '../../core/services/audit.service';
 import { User } from '../../core/models/user.model';
+import { AuditEntry } from '../../core/models/audit-entry.model';
 
 @Component({
   selector: 'app-admin',
@@ -18,6 +20,10 @@ export class AdminComponent implements OnInit {
   errorMessage = '';
   deleteConfirm: string | null = null;
 
+  activeTab: 'users' | 'audit' = 'users';
+  auditEntries: AuditEntry[] = [];
+  isLoadingAudit = false;
+
   userForm!: FormGroup;
   currentUser!: User;
 
@@ -25,12 +31,65 @@ export class AdminComponent implements OnInit {
     private userService: UserService,
     private auth: AuthService,
     private fb: FormBuilder,
+    private auditService: AuditService,
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.auth.currentUser!;
     this.initForm();
     this.loadUsers();
+  }
+
+  setTab(tab: 'users' | 'audit'): void {
+    this.activeTab = tab;
+    if (tab === 'audit') {
+      this.loadAuditLog();
+    }
+  }
+
+  loadAuditLog(): void {
+    this.isLoadingAudit = true;
+    this.auditService.getAuditEntries().subscribe({
+      next: (entries) => {
+        this.auditEntries = entries;
+        this.isLoadingAudit = false;
+      },
+      error: () => {
+        this.isLoadingAudit = false;
+      },
+    });
+  }
+
+  getActionLabel(action: string): string {
+    const labels: Record<string, string> = {
+      login: 'Login',
+      logout: 'Logout',
+      user_create: 'User Created',
+      user_update: 'User Updated',
+      user_delete: 'User Deleted',
+    };
+    return labels[action] ?? action;
+  }
+
+  getActionBadgeClass(action: string): string {
+    if (action === 'login') return 'badge--success';
+    if (action === 'logout') return 'badge--muted';
+    if (action === 'user_create') return 'badge--primary';
+    if (action === 'user_update') return 'badge--teal';
+    if (action === 'user_delete') return 'badge--danger';
+    return 'badge--muted';
+  }
+
+  formatTime(ts: string): string {
+    const d = new Date(ts);
+    const now = Date.now();
+    const diff = now - d.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return d.toLocaleDateString();
   }
 
   initForm(user?: User): void {

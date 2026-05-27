@@ -17,6 +17,7 @@
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  box-shadow: 1px 0 0 var(--border);
 }
 
 .sidebar-top {
@@ -36,13 +37,13 @@
 .brand-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #3b6bea, #7c3aed);
+  background: var(--primary);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 0 16px rgba(59, 107, 234, 0.35);
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 .brand-label {
@@ -74,24 +75,24 @@
   position: relative;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-surface);
     color: var(--text-primary);
   }
 
   &--active {
-    background: rgba(59, 107, 234, 0.12);
+    background: rgba(13, 148, 136, 0.1);
     color: var(--primary);
-    border: 1px solid rgba(59, 107, 234, 0.2);
+    border: 1px solid rgba(13, 148, 136, 0.2);
   }
 
   &--admin {
-    color: var(--accent-light);
-    &:hover { background: rgba(124, 58, 237, 0.1); }
-    &.nav-item--active { background: rgba(124, 58, 237, 0.12); border-color: rgba(124, 58, 237, 0.25); }
+    color: var(--primary);
+    &:hover { background: rgba(13, 148, 136, 0.06); }
+    &.nav-item--active { background: rgba(13, 148, 136, 0.1); border-color: rgba(13, 148, 136, 0.25); }
   }
 }
 
-.nav-icon { flex-shrink: 0; opacity: 0.8; }
+.nav-icon { flex-shrink: 0; opacity: 0.75; }
 
 .nav-badge {
   margin-left: auto;
@@ -100,10 +101,10 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 2px 7px;
-  background: rgba(124, 58, 237, 0.18);
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  background: rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.25);
   border-radius: 20px;
-  color: var(--accent-light);
+  color: var(--primary);
 }
 
 .sidebar-footer {
@@ -119,15 +120,16 @@
   align-items: center;
   gap: 11px;
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-surface);
   border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b6bea, #7c3aed);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,7 +159,7 @@
   font-size: 11px;
   color: var(--text-muted);
   text-transform: capitalize;
-  &.admin { color: var(--accent-light); }
+  &.admin { color: var(--primary); font-weight: 600; }
 }
 
 .logout-btn {
@@ -218,14 +220,14 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b6bea, #7c3aed);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
   font-weight: 700;
   color: #fff;
-  box-shadow: 0 0 24px rgba(59, 107, 234, 0.35);
+  box-shadow: 0 4px 16px var(--primary-glow);
 }
 
 .profile-body { width: 100%; }
@@ -274,7 +276,7 @@
   color: var(--text-primary);
   line-height: 1;
 
-  &.accent { color: var(--accent-light); }
+  &.accent { color: var(--primary); }
 }
 
 .stat-label {
@@ -296,6 +298,7 @@
   padding: 20px 24px;
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
+  background: var(--bg-surface);
 }
 
 .section-title {
@@ -337,6 +340,7 @@
   color: var(--primary);
   font-family: var(--font-mono);
   font-size: 13px;
+  font-weight: 600;
 }
 
 .delay-slider {
@@ -356,9 +360,9 @@
     border-radius: 50%;
     background: var(--primary);
     cursor: pointer;
-    box-shadow: 0 0 8px var(--primary-glow);
+    box-shadow: 0 2px 6px var(--primary-glow);
     transition: box-shadow var(--transition);
-    &:hover { box-shadow: 0 0 16px var(--primary-glow); }
+    &:hover { box-shadow: 0 2px 12px var(--primary-glow); }
   }
 }
 
@@ -371,15 +375,15 @@
   font-weight: 500;
 
   &--loading {
-    background: rgba(59, 107, 234, 0.08);
-    border-bottom: 1px solid rgba(59, 107, 234, 0.15);
-    color: #93b4fb;
+    background: rgba(13, 148, 136, 0.06);
+    border-bottom: 1px solid rgba(13, 148, 136, 0.15);
+    color: var(--primary);
   }
 
   &--done {
-    background: rgba(16, 185, 129, 0.07);
-    border-bottom: 1px solid rgba(16, 185, 129, 0.15);
-    color: #6ee7b7;
+    background: var(--success-bg);
+    border-bottom: 1px solid rgba(5, 150, 105, 0.15);
+    color: var(--success);
   }
 
   strong { font-weight: 700; }
